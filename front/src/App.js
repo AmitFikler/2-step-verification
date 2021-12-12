@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Home from './components/Home';
 import Login from './components/login';
+import Verification from './components/Verification';
 function App() {
   return (
     <div className="App">
@@ -8,7 +9,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Login />} />
           <Route path="/home" element={<Home />} />
-          <Route path="/verification" element={<div>verification</div>} />
+          <Route path="/verification" element={<Verification />} />
         </Routes>
       </Router>
     </div>
