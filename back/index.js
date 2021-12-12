@@ -13,9 +13,15 @@ app.use(express.json());
 
 app.post('/login', async (req, res) => {
   const { username, password } = req.body;
+
   for (let user of database) {
-    if (user.username === username) {
-      res.send('username is taken');
+    if (
+      user.username === username &&
+      (await bcrypt.compare(password, user.password))
+    ) {
+      return res.send(user);
+    } else if (user.username === username) {
+      return res.send('username is taken');
     }
   }
   const hashedSalt = await bcrypt.genSalt(saltRounds);
@@ -30,22 +36,38 @@ app.post('/login', async (req, res) => {
 app.post('/verification', (req, res) => {
   const { username } = req.body;
   if (username) {
-    res.send(
-      twofactor.generateSecret({ name: 'Fikler App', account: username })
-    );
+    const generator = twofactor.generateSecret({
+      name: 'Fikler App',
+      account: username,
+    });
+    for (let user of database) {
+      if (username === user.username) {
+        user.secret = generator.secret;
+        res.send(generator);
+      }
+    }
   } else {
-    res.send('username is missing');
+    res.send('username is taken');
   }
 });
 
 app.put('/verificationToken', (req, res) => {
   const { secret, token } = req.body;
+  console.log(secret, token);
   const checkToken = twofactor.verifyToken(secret, token);
-  if (checkToken.delta === 0) {
-    res.send('verify token');
+  if (checkToken) {
+    if (checkToken.delta === 0) {
+      res.send('verify token');
+    } else {
+      res.send('invalid token');
+    }
   } else {
     res.send('invalid token');
   }
+});
+
+app.get('/database', (req, res) => {
+  res.send(database);
 });
 
 app.get('/', (req, res) => {

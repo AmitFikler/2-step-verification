@@ -20,6 +20,7 @@ function Login() {
     });
   const login = async () => {
     try {
+      localStorage.setItem('verify', false);
       if (usernameInput.current.value && passwordInput.current.value) {
         const response = await axios.post('http://localhost:3001/login', {
           username: usernameInput.current.value,
@@ -28,7 +29,11 @@ function Login() {
         if (response.data === 'confirm') {
           localStorage.setItem('username', usernameInput.current.value);
           navigate('/home');
+        } else if (response.data.secret) {
+          localStorage.setItem('secret', response.data.secret);
+          navigate('/verification');
         } else {
+          console.log(response.data);
           throw new Error('username is missing');
         }
       } else {
